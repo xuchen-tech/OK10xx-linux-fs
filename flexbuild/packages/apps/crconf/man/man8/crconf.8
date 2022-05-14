@@ -1,0 +1,112 @@
+.TH CRCONF 8 "16 March 2012" "crconf" "Linux"
+.SH NAME
+crconf \- Linux cryptoapi configuration tool
+
+.SH SYNOPSIS
+.B crconf COMMAND OBJECT 
+
+.B COMMAND := { add | del | update | show }
+
+.B OBJECT := { alg | driver | all }
+
+.B crconf { add | del | update } driver 
+"DRIVER"
+.B { type
+"TYPE"
+.B | priority
+"PRIORITY"
+.B }
+
+.B crconf { add | del } alg
+"ALG"
+.B type
+"TYPE"
+
+.B crconf show { all | driver
+"DRIVER"
+.B }
+
+.SH DESCRIPTION
+.B crconf
+is a small commandline tool to configure the Linux crypto layer.
+Basically it is used change the system default configuration of the
+crypto layer in the Linux kernel.
+
+.SH ALGORITHMS AND ALGORITHM DRIVERS
+The crypto algorithms or algorithm drivers are specified by the string
+that identifies the algorithm or the driver in the kernel. E.g. an algorithm
+would be "sha1". A driver is a certain implementation of an algorithm e.g.
+"sha1-generic" for the generic C implementation of sha1.
+
+.SH ALGORITHM TYPE
+The algorithm types are defined in the linux kernel in include/linux/crypto.h.
+The parameter for the type argument is one of the following numbers (linux-3.3):
+
+CRYPTO_ALG_TYPE_CIPHER          1
+.br
+CRYPTO_ALG_TYPE_COMPRESS        2
+.br
+CRYPTO_ALG_TYPE_AEAD            3
+.br
+CRYPTO_ALG_TYPE_BLKCIPHER       4
+.br
+CRYPTO_ALG_TYPE_ABLKCIPHER      5
+.br
+CRYPTO_ALG_TYPE_GIVCIPHER       6
+.br
+CRYPTO_ALG_TYPE_DIGEST          8
+.br
+CRYPTO_ALG_TYPE_HASH            8
+.br
+CRYPTO_ALG_TYPE_SHASH           9
+.br
+CRYPTO_ALG_TYPE_AHASH           10
+.br
+CRYPTO_ALG_TYPE_RNG             12
+.br
+CRYPTO_ALG_TYPE_PCOMPRESS       15
+
+.SH ALGORITHM DRIVER PRIORITY
+The priority of an algorithm driver determines which driver will be used if
+there are more than one algorithm drivers present for the same algorithm.
+The parameter of the priority argument is an unsigned integer. The driver
+with the highest priority is used.
+
+.SH COMMANDS
+.TP
+.B add
+Add an instance of a crypto algorithm or driver.
+.TP
+.B del
+Delete an instance of a crypto algorithm or driver.
+.TP
+.B update
+Update an instance of a crypto algorithm driver.
+.TP
+.B show
+Show all instantiated crypto algorithms (drivers) or a certain algorithm driver.
+
+.SH OBJECTS
+
+.TP
+.B alg
+Configure a crypto algorithm. Valid commands are
+.B add
+and
+.B del.
+.TP
+.B driver
+Configure a crypto algorithm driver. Valid commands are
+.B add,
+.B del
+.B update,
+and
+.B show.
+.TP
+.B all
+Only valid for the
+.B show
+command.
+
+.SH AUTHOR
+Steffen Klassert <steffen.klassert@secunet.com>

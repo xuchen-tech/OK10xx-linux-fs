@@ -1,0 +1,40 @@
+Testing methodology
+
+
+1. Compile PPA with :
+
+./build clean all; ./build dev rdb ddr sd dbg uart test=sd ls1046
+
+2. CST folder
+
+Copy monitor.bin to CST. Checkout branch "PPA_brngup"
+
+cp the reqd rcw to cst folder 
+LS1046 eMMC boot- rcw_spl_emmc_ls1046
+LS1046 SD boot - rcw_spl_sd_ls1046
+LS1043 SD boot - rcw_spl_sd_ls1043
+
+Modify the RCW_PBI_FILENAME= in input_files/uni_pbi/ls104x_1012/input_pbi_sd_secure to reflect the correct RCW based on target you want to try on
+
+Run
+ ./uni_pbi input_files/uni_pbi/ls104x_1012/input_pbi_sd_secure
+
+Output would be rcw_ppa.bin
+
+This RCW has the pbi commands to copy monitor.bin to OCRAM location 0x1000000 and sets the bootlocptr accordingly
+
+3. on the board
+
+For testing on LS1043, LS1046
+
+tftp 0x80100000 rcw_ppa.bin
+mmc erase 0 130; mmc write 0x80100000 8 120
+
+// sddata.bin available in PPA test folder
+// Data pattern used for testing
+tftp 0x80100000 sddata.bin
+mmc erase 200 10;mmc write 0x80100000 200 10
+
+cpld reset sd
+
+

@@ -1,0 +1,7 @@
+# 启动脚本/etc/init.d/rcS
+::sysinit:/etc/init.d/rcS
+# 启动 shell
+#::askfirst:-/bin/sh
+# 重启关机前 卸载文件系统
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r

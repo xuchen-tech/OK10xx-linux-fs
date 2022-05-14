@@ -1,0 +1,59 @@
+README
+-----
+
+AIOP Tool (aiop_tool) is a userspace application for performing operations
+on an AIOP Tile using MC interfaces. This application enables the user to
+fetch status of tile, load a valid ELF file and run it on a tile and get and set
+time of day.
+
+Pre-requisite:
+-------------
+1. This requires a non-root container containing atleast a dpmcp and dpaiop
+   object. This container can be statically defined (Static DPL) or dynamically
+   created (using restool). This is NOT the container which is reserved by
+   MC for interaction with AIOP.
+
+2. VFIO support in Linux Kernel
+   This application assumes that the dpaiop device would be mapped into VFIO
+   driver so as to use is feature of DMA Mapping and pushing SMMU addresses
+   for AIOP's access to use space memory.
+   This application assumes that the resource container (DPRC) is VFIO
+   mapped before being used. Please refer to `restool` application for
+   creating/destroying resource containers (DPRC).
+
+3. Valid AIOP Image for loading
+
+Build:
+-----
+
+1. Update the CROSS_COMPILER with appropriate path to toolchain binaries.
+   Update CFLAGS if required, for example, for adding debug info
+
+2. $ make clean
+   $ make
+   OR,
+   $ make install # would perform make and put binary in BINDIR
+
+3. 'aiop_tool' binary would be available in bin folder.
+
+4. $ make install DESTDIR=<Path>
+   to place the binary in <Path>/usr/bin
+
+Run:
+----
+
+1. $ aiop_tool -h
+2. Example command for loading AIOP Image:
+   $ aiop_tool load -g <container name> -f <path to file> -d -v
+
+   '-g' is option and can be set through environment variable DPRC. If not
+   provided on command line or not set through DPRC, default dprc.5 is assumed.
+
+   '-d' and '-v' are for debugging and verbose information, respectively. These
+   are optional.
+3. Example command for getting status of AIOP Tile:
+   $ aiop_tool status
+4. Example command for getting time on AIOP Tile:
+   $ aiop_tool gettod
+5. Example command for setting time on AIOP Tile:
+   $ aiop_tool settod -g dprc.2 -t <Time in Seconds since Epoch>

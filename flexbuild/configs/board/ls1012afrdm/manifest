@@ -1,0 +1,27 @@
+# [general]
+machine=ls1012afrdm
+
+# [firmware_images]
+rcw_qspi=build/firmware/rcw/ls1012afrdm/N_SSNP_3305/rcw_800.bin.swapped
+rcw_qspi_sec=null
+uboot_qspiboot=build/firmware/u-boot/ls1012afrdm/uboot_ls1012afrdm_qspi.bin
+uboot_qspiboot_sec=null
+ppa=build/firmware/ppa/soc-ls1012/ppa_frdm.itb
+pfe_fw=build/firmware/qoriq-engine-pfe-bin/ls1012a/u-boot/pfe_fw_sbl.itb
+pfe_kernel=build/firmware/qoriq-engine-pfe-bin/ls1012a/slow_path/ppfe*.elf
+secureboot_headers=null
+
+# [linux, dtb, rfs]
+kernel_img=build/linux/kernel/arm64/Image
+device_tree=build/linux/kernel/arm64/fsl-ls1012a-frdm.dtb
+ramdiskrfs=packages/rfs/ramdiskrfs/ramdisk_rootfs_arm64.ext4.gz
+kernelrfs_continuous=yes
+
+# [distro autoboot script]
+uboot_scr=build/firmware/u-boot/ls1012afrdm/ls1012afrdm_boot.scr
+
+
+distroboot='part uuid $devtype $devnum:3 partuuid3; setenv bootargs console=ttyS0,115200 earlycon=uart8250,mmio,0x21c0500 root=PARTUUID=$partuuid3 rw rootwait $othbootargs; load $devtype $devnum:2 $kernel_addr_r Image;load $devtype $devnum:2 $fdt_addr_r fsl-ls1012a-frdm.dtb; env exists secureboot && echo validating secureboot && run secureboot_validate;booti $kernel_addr_r - $fdt_addr_r'
+
+# [secure boot scripts in cst]
+qspi_script=scripts/platforms/ls104x_1012_qspi.sh

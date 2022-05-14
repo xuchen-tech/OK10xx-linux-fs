@@ -1,0 +1,1307 @@
+/*
+ * Copyright 2015-2016 Freescale Semiconductor, Inc.
+ * Copyright 2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the above-listed copyright holders nor the
+ *     names of any contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * This DPL showcases one Linux configuration for SerDes 0x2a_0x07.
+ */
+
+/dts-v1/;
+/ {
+	/*****************************************************************
+         * Containers
+         *****************************************************************/
+	containers {
+		dprc@1 {
+			parent = "none";
+			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED", "DPRC_CFG_OPT_IRQ_CFG_ALLOWED";
+
+			objects {
+				/* ------------- DPMACs --------------*/
+				/* For SerDes 0x2a_07, 5 DPMACs are mapped
+				 * on the 5 XFI ports and 8 DPMACs
+				 * are mapped on the 8 SGMII ports of the PCIe
+				 * Slot 4 riser card.
+				 */
+				obj@101 {
+					obj_name = "dpmac@1";
+				};
+				obj@102 {
+					obj_name = "dpmac@2";
+				};
+				obj@103 {
+					obj_name = "dpmac@3";
+				};
+				obj@104 {
+					obj_name = "dpmac@4";
+				};
+				obj@105 {
+					obj_name = "dpmac@5";
+				};
+
+				obj@106 {
+					obj_name = "dpmac@9";
+				};
+				obj@107 {
+					obj_name = "dpmac@10";
+				};
+				obj@108 {
+					obj_name = "dpmac@11";
+				};
+				obj@109 {
+					obj_name = "dpmac@12";
+				};
+				obj@110 {
+					obj_name = "dpmac@13";
+				};
+				obj@111 {
+					obj_name = "dpmac@14";
+				};
+				obj@112 {
+					obj_name = "dpmac@15";
+				};
+				obj@113 {
+					obj_name = "dpmac@16";
+				};
+
+				/* ------------ DPNIs --------------*/
+				obj@200 {
+					obj_name="dpni@0";
+				};
+				obj@201 {
+					obj_name="dpni@1";
+				};
+				obj@202 {
+					obj_name="dpni@2";
+				};
+				obj@203 {
+					obj_name="dpni@3";
+				};
+				obj@204 {
+					obj_name="dpni@4";
+				};
+				obj@205 {
+					obj_name="dpni@5";
+				};
+				obj@206 {
+					obj_name="dpni@6";
+				};
+				obj@207 {
+					obj_name="dpni@7";
+				};
+				obj@208 {
+					obj_name="dpni@8";
+				};
+				obj@209 {
+					obj_name="dpni@9";
+				};
+				obj@210 {
+					obj_name="dpni@10";
+				};
+				obj@211 {
+					obj_name="dpni@11";
+				};
+				obj@212 {
+					obj_name="dpni@12";
+				};
+
+				/* ------------ DPBPs --------------*/
+				/* Each DPNI uses one DPBP */
+				obj@300 {
+					obj_name="dpbp@0";
+				};
+				obj@301 {
+					obj_name="dpbp@1";
+				};
+				obj@302 {
+					obj_name="dpbp@2";
+				};
+				obj@303 {
+					obj_name="dpbp@3";
+				};
+				obj@304 {
+					obj_name="dpbp@4";
+				};
+				obj@305 {
+					obj_name="dpbp@5";
+				};
+				obj@306 {
+					obj_name="dpbp@6";
+				};
+				obj@307 {
+					obj_name="dpbp@7";
+				};
+				obj@308 {
+					obj_name="dpbp@8";
+				};
+				obj@309 {
+					obj_name="dpbp@9";
+				};
+				obj@310 {
+					obj_name="dpbp@10";
+				};
+				obj@311 {
+					obj_name="dpbp@11";
+				};
+				obj@312 {
+					obj_name="dpbp@12";
+				};
+
+
+				/* ------------ DPMCPs --------------*/
+				/* Ethernet DPMCPs:
+				*  One for every DPNI, one for every DPMAC, then
+				*  one more for DPIO.
+				*
+				*  Next: DPRC and restool, VFIO and possibly
+				*  others from the kernel have DPMCP requirements.
+				*  We'll just add a slack of 10 MCPs.
+				*/
+				obj@501 {
+					obj_name="dpmcp@1";
+				};
+				obj@502 {
+					obj_name="dpmcp@2";
+				};
+				obj@503 {
+					obj_name="dpmcp@3";
+				};
+				obj@504 {
+					obj_name="dpmcp@4";
+				};
+				obj@505 {
+					obj_name="dpmcp@5";
+				};
+				obj@506 {
+					obj_name="dpmcp@6";
+				};
+				obj@507 {
+					obj_name="dpmcp@7";
+				};
+				obj@508 {
+					obj_name="dpmcp@8";
+				};
+				obj@509 {
+					obj_name="dpmcp@9";
+				};
+				obj@510 {
+					obj_name="dpmcp@10";
+				};
+				obj@511 {
+					obj_name="dpmcp@11";
+				};
+				obj@512 {
+					obj_name="dpmcp@12";
+				};
+				obj@513 {
+					obj_name="dpmcp@13";
+				};
+				obj@514 {
+					obj_name="dpmcp@14";
+				};
+				obj@515 {
+					obj_name="dpmcp@15";
+				};
+				obj@516 {
+					obj_name="dpmcp@16";
+				};
+				obj@517 {
+					obj_name="dpmcp@17";
+				};
+				obj@518 {
+					obj_name="dpmcp@18";
+				};
+				obj@519 {
+					obj_name="dpmcp@19";
+				};
+				obj@520 {
+					obj_name="dpmcp@20";
+				};
+				obj@521 {
+					obj_name="dpmcp@21";
+				};
+				obj@522 {
+					obj_name="dpmcp@22";
+				};
+				obj@523 {
+					obj_name="dpmcp@23";
+				};
+				obj@524 {
+					obj_name="dpmcp@24";
+				};
+				obj@525 {
+					obj_name="dpmcp@25";
+				};
+				obj@526 {
+					obj_name="dpmcp@26";
+				};
+				obj@527 {
+					obj_name="dpmcp@27";
+				};
+				obj@528 {
+					obj_name="dpmcp@28";
+				};
+				obj@529 {
+					obj_name="dpmcp@29";
+				};
+				obj@530 {
+					obj_name="dpmcp@30";
+				};
+				obj@531 {
+					obj_name="dpmcp@31";
+				};
+				obj@532 {
+					obj_name="dpmcp@32";
+				};
+				obj@533 {
+					obj_name="dpmcp@33";
+				};
+				obj@534 {
+					obj_name="dpmcp@34";
+				};
+				obj@535 {
+					obj_name="dpmcp@35";
+				};
+				obj@536 {
+					obj_name="dpmcp@36";
+				};
+
+				/* ------------ DPIOs --------------*/
+				/* One DPIO for each online CPU. This is a
+				 * maximal configuration.
+				 */
+				obj@400 {
+					obj_name="dpio@0";
+				};
+				obj@401 {
+					obj_name="dpio@1";
+				};
+				obj@402 {
+					obj_name="dpio@2";
+				};
+				obj@403 {
+					obj_name="dpio@3";
+				};
+				obj@404 {
+					obj_name="dpio@4";
+				};
+				obj@405 {
+					obj_name="dpio@5";
+				};
+				obj@406 {
+					obj_name="dpio@6";
+				};
+				obj@407 {
+					obj_name="dpio@7";
+				};
+
+				/* ------------ DPCONs --------------*/
+				/* Used by DPNIs in Linux for CDAN-based dequeueing.
+				 * Ideally, there should be one DPCON per {DPNIxDPIO}
+				 * combination.
+				 */
+				obj@600 {
+					obj_name="dpcon@0";
+				};
+				obj@601 {
+					obj_name="dpcon@1";
+				};
+				obj@602 {
+					obj_name="dpcon@2";
+				};
+				obj@603 {
+					obj_name="dpcon@3";
+				};
+				obj@604 {
+					obj_name="dpcon@4";
+				};
+				obj@605 {
+					obj_name="dpcon@5";
+				};
+				obj@606 {
+					obj_name="dpcon@6";
+				};
+				obj@607 {
+					obj_name="dpcon@7";
+				};
+				obj@608 {
+					obj_name="dpcon@8";
+				};
+				obj@609 {
+					obj_name="dpcon@9";
+				};
+				obj@610 {
+					obj_name="dpcon@10";
+				};
+				obj@611 {
+					obj_name="dpcon@11";
+				};
+				obj@612 {
+					obj_name="dpcon@12";
+				};
+				obj@613 {
+					obj_name="dpcon@13";
+				};
+				obj@614 {
+					obj_name="dpcon@14";
+				};
+				obj@615 {
+					obj_name="dpcon@15";
+				};
+				obj@616 {
+					obj_name="dpcon@16";
+				};
+				obj@617 {
+					obj_name="dpcon@17";
+				};
+				obj@618 {
+					obj_name="dpcon@18";
+				};
+				obj@619 {
+					obj_name="dpcon@19";
+				};
+				obj@620 {
+					obj_name="dpcon@20";
+				};
+				obj@621 {
+					obj_name="dpcon@21";
+				};
+				obj@622 {
+					obj_name="dpcon@22";
+				};
+				obj@623 {
+					obj_name="dpcon@23";
+				};
+				obj@624 {
+					obj_name="dpcon@24";
+				};
+				obj@625 {
+					obj_name="dpcon@25";
+				};
+				obj@626 {
+					obj_name="dpcon@26";
+				};
+				obj@627 {
+					obj_name="dpcon@27";
+				};
+				obj@628 {
+					obj_name="dpcon@28";
+				};
+				obj@629 {
+					obj_name="dpcon@29";
+				};
+				obj@630 {
+					obj_name="dpcon@30";
+				};
+				obj@631 {
+					obj_name="dpcon@31";
+				};
+				obj@632 {
+					obj_name="dpcon@32";
+				};
+				obj@633 {
+					obj_name="dpcon@33";
+				};
+				obj@634 {
+					obj_name="dpcon@34";
+				};
+				obj@635 {
+					obj_name="dpcon@35";
+				};
+				obj@636 {
+					obj_name="dpcon@36";
+				};
+				obj@637 {
+					obj_name="dpcon@37";
+				};
+				obj@638 {
+					obj_name="dpcon@38";
+				};
+				obj@639 {
+					obj_name="dpcon@39";
+				};
+				obj@640 {
+					obj_name="dpcon@40";
+				};
+				obj@641 {
+					obj_name="dpcon@41";
+				};
+				obj@642 {
+					obj_name="dpcon@42";
+				};
+				obj@643 {
+					obj_name="dpcon@43";
+				};
+				obj@644 {
+					obj_name="dpcon@44";
+				};
+				obj@645 {
+					obj_name="dpcon@45";
+				};
+				obj@646 {
+					obj_name="dpcon@46";
+				};
+				obj@647 {
+					obj_name="dpcon@47";
+				};
+				obj@648 {
+					obj_name="dpcon@48";
+				};
+				obj@649 {
+					obj_name="dpcon@49";
+				};
+				obj@650 {
+					obj_name="dpcon@50";
+				};
+				obj@651 {
+					obj_name="dpcon@51";
+				};
+				obj@652 {
+					obj_name="dpcon@52";
+				};
+				obj@653 {
+					obj_name="dpcon@53";
+				};
+				obj@654 {
+					obj_name="dpcon@54";
+				};
+				obj@655 {
+					obj_name="dpcon@55";
+				};
+				obj@656 {
+					obj_name="dpcon@56";
+				};
+				obj@657 {
+					obj_name="dpcon@57";
+				};
+				obj@658 {
+					obj_name="dpcon@58";
+				};
+				obj@659 {
+					obj_name="dpcon@59";
+				};
+				obj@660 {
+					obj_name="dpcon@60";
+				};
+				obj@661 {
+					obj_name="dpcon@61";
+				};
+				obj@662 {
+					obj_name="dpcon@62";
+				};
+				obj@663 {
+					obj_name="dpcon@63";
+				};
+				obj@664 {
+					obj_name="dpcon@64";
+				};
+				obj@665 {
+					obj_name="dpcon@65";
+				};
+				obj@666 {
+					obj_name="dpcon@66";
+				};
+				obj@667 {
+					obj_name="dpcon@67";
+				};
+				obj@668 {
+					obj_name="dpcon@68";
+				};
+				obj@669 {
+					obj_name="dpcon@69";
+				};
+				obj@670 {
+					obj_name="dpcon@70";
+				};
+				obj@671 {
+					obj_name="dpcon@71";
+				};
+				obj@672 {
+					obj_name="dpcon@72";
+				};
+				obj@673 {
+					obj_name="dpcon@73";
+				};
+				obj@674 {
+					obj_name="dpcon@74";
+				};
+				obj@675 {
+					obj_name="dpcon@75";
+				};
+				obj@676 {
+					obj_name="dpcon@76";
+				};
+				obj@677 {
+					obj_name="dpcon@77";
+				};
+				obj@678 {
+					obj_name="dpcon@78";
+				};
+				obj@679 {
+					obj_name="dpcon@79";
+				};
+				obj@680 {
+					obj_name="dpcon@80";
+				};
+				obj@681 {
+					obj_name="dpcon@81";
+				};
+				obj@682 {
+					obj_name="dpcon@82";
+				};
+				obj@683 {
+					obj_name="dpcon@83";
+				};
+				obj@684 {
+					obj_name="dpcon@84";
+				};
+				obj@685 {
+					obj_name="dpcon@85";
+				};
+				obj@686 {
+					obj_name="dpcon@86";
+				};
+				obj@687 {
+					obj_name="dpcon@87";
+				};
+				obj@688 {
+					obj_name="dpcon@88";
+				};
+				obj@689 {
+					obj_name="dpcon@89";
+				};
+				obj@690 {
+					obj_name="dpcon@90";
+				};
+				obj@691 {
+					obj_name="dpcon@91";
+				};
+				obj@692 {
+					obj_name="dpcon@92";
+				};
+				obj@693 {
+					obj_name="dpcon@93";
+				};
+				obj@694 {
+					obj_name="dpcon@94";
+				};
+				obj@695 {
+					obj_name="dpcon@95";
+				};
+				obj@696 {
+					obj_name="dpcon@96";
+				};
+				obj@697 {
+					obj_name="dpcon@97";
+				};
+				obj@698 {
+					obj_name="dpcon@98";
+				};
+				obj@699 {
+					obj_name="dpcon@99";
+				};
+				obj@700 {
+					obj_name="dpcon@100";
+				};
+				obj@701 {
+					obj_name="dpcon@101";
+				};
+				obj@702 {
+					obj_name="dpcon@102";
+				};
+				obj@703 {
+					obj_name="dpcon@103";
+				};
+			};
+		};
+	};
+
+	/*****************************************************************
+         * Objects
+         *****************************************************************/
+	objects {
+
+		/* ------------ DPBP --------------*/
+		dpbp@0 {
+		};
+		dpbp@1 {
+		};
+		dpbp@2 {
+		};
+		dpbp@3 {
+		};
+		dpbp@4 {
+		};
+		dpbp@5 {
+		};
+		dpbp@6 {
+		};
+		dpbp@7 {
+		};
+		dpbp@8 {
+		};
+		dpbp@9 {
+		};
+		dpbp@10 {
+		};
+		dpbp@11 {
+		};
+		dpbp@12 {
+		};
+
+		/* ------------ DPIO --------------*/
+		dpio@0 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@1 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@2 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@3 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@4 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@5 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@6 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+		dpio@7 {
+			channel_mode="DPIO_LOCAL_CHANNEL";
+			num_priorities=<8>;
+		};
+
+		/* ------------ DPCON --------------*/
+		/* Use 2-WQ channels to accomodate the many DPNI needs */
+		dpcon@0 {
+			num_priorities=<2>;
+		};
+		dpcon@1 {
+			num_priorities=<2>;
+		};
+		dpcon@2 {
+			num_priorities=<2>;
+		};
+		dpcon@3 {
+			num_priorities=<2>;
+		};
+		dpcon@4 {
+			num_priorities=<2>;
+		};
+		dpcon@5 {
+			num_priorities=<2>;
+		};
+		dpcon@6 {
+			num_priorities=<2>;
+		};
+		dpcon@7 {
+			num_priorities=<2>;
+		};
+		dpcon@8 {
+			num_priorities=<2>;
+		};
+		dpcon@9 {
+			num_priorities=<2>;
+		};
+		dpcon@10 {
+			num_priorities=<2>;
+		};
+		dpcon@11 {
+			num_priorities=<2>;
+		};
+		dpcon@12 {
+			num_priorities=<2>;
+		};
+		dpcon@13 {
+			num_priorities=<2>;
+		};
+		dpcon@14 {
+			num_priorities=<2>;
+		};
+		dpcon@15 {
+			num_priorities=<2>;
+		};
+		dpcon@16 {
+			num_priorities=<2>;
+		};
+		dpcon@17 {
+			num_priorities=<2>;
+		};
+		dpcon@18 {
+			num_priorities=<2>;
+		};
+		dpcon@19 {
+			num_priorities=<2>;
+		};
+		dpcon@20 {
+			num_priorities=<2>;
+		};
+		dpcon@21 {
+			num_priorities=<2>;
+		};
+		dpcon@22 {
+			num_priorities=<2>;
+		};
+		dpcon@23 {
+			num_priorities=<2>;
+		};
+		dpcon@24 {
+			num_priorities=<2>;
+		};
+		dpcon@25 {
+			num_priorities=<2>;
+		};
+		dpcon@26 {
+			num_priorities=<2>;
+		};
+		dpcon@27 {
+			num_priorities=<2>;
+		};
+		dpcon@28 {
+			num_priorities=<2>;
+		};
+		dpcon@29 {
+			num_priorities=<2>;
+		};
+		dpcon@30 {
+			num_priorities=<2>;
+		};
+		dpcon@31 {
+			num_priorities=<2>;
+		};
+		dpcon@32 {
+			num_priorities=<2>;
+		};
+		dpcon@33 {
+			num_priorities=<2>;
+		};
+		dpcon@34 {
+			num_priorities=<2>;
+		};
+		dpcon@35 {
+			num_priorities=<2>;
+		};
+		dpcon@36 {
+			num_priorities=<2>;
+		};
+		dpcon@37 {
+			num_priorities=<2>;
+		};
+		dpcon@38 {
+			num_priorities=<2>;
+		};
+		dpcon@39 {
+			num_priorities=<2>;
+		};
+		dpcon@40 {
+			num_priorities=<2>;
+		};
+		dpcon@41 {
+			num_priorities=<2>;
+		};
+		dpcon@42 {
+			num_priorities=<2>;
+		};
+		dpcon@43 {
+			num_priorities=<2>;
+		};
+		dpcon@44 {
+			num_priorities=<2>;
+		};
+		dpcon@45 {
+			num_priorities=<2>;
+		};
+		dpcon@46 {
+			num_priorities=<2>;
+		};
+		dpcon@47 {
+			num_priorities=<2>;
+		};
+		dpcon@48 {
+			num_priorities=<2>;
+		};
+		dpcon@49 {
+			num_priorities=<2>;
+		};
+		dpcon@50 {
+			num_priorities=<2>;
+		};
+		dpcon@51 {
+			num_priorities=<2>;
+		};
+		dpcon@52 {
+			num_priorities=<2>;
+		};
+		dpcon@53 {
+			num_priorities=<2>;
+		};
+		dpcon@54 {
+			num_priorities=<2>;
+		};
+		dpcon@55 {
+			num_priorities=<2>;
+		};
+		dpcon@56 {
+			num_priorities=<2>;
+		};
+		dpcon@57 {
+			num_priorities=<2>;
+		};
+		dpcon@58 {
+			num_priorities=<2>;
+		};
+		dpcon@59 {
+			num_priorities=<2>;
+		};
+		dpcon@60 {
+			num_priorities=<2>;
+		};
+		dpcon@61 {
+			num_priorities=<2>;
+		};
+		dpcon@62 {
+			num_priorities=<2>;
+		};
+		dpcon@63 {
+			num_priorities=<2>;
+		};
+		dpcon@64 {
+			num_priorities=<2>;
+		};
+		dpcon@65 {
+			num_priorities=<2>;
+		};
+		dpcon@66 {
+			num_priorities=<2>;
+		};
+		dpcon@67 {
+			num_priorities=<2>;
+		};
+		dpcon@68 {
+			num_priorities=<2>;
+		};
+		dpcon@69 {
+			num_priorities=<2>;
+		};
+		dpcon@70 {
+			num_priorities=<2>;
+		};
+		dpcon@71 {
+			num_priorities=<2>;
+		};
+		dpcon@72 {
+			num_priorities=<2>;
+		};
+		dpcon@73 {
+			num_priorities=<2>;
+		};
+		dpcon@74 {
+			num_priorities=<2>;
+		};
+		dpcon@75 {
+			num_priorities=<2>;
+		};
+		dpcon@76 {
+			num_priorities=<2>;
+		};
+		dpcon@77 {
+			num_priorities=<2>;
+		};
+		dpcon@78 {
+			num_priorities=<2>;
+		};
+		dpcon@79 {
+			num_priorities=<2>;
+		};
+		dpcon@80 {
+			num_priorities=<2>;
+		};
+		dpcon@81 {
+			num_priorities=<2>;
+		};
+		dpcon@82 {
+			num_priorities=<2>;
+		};
+		dpcon@83 {
+			num_priorities=<2>;
+		};
+		dpcon@84 {
+			num_priorities=<2>;
+		};
+		dpcon@85 {
+			num_priorities=<2>;
+		};
+		dpcon@86 {
+			num_priorities=<2>;
+		};
+		dpcon@87 {
+			num_priorities=<2>;
+		};
+		dpcon@88 {
+			num_priorities=<2>;
+		};
+		dpcon@89 {
+			num_priorities=<2>;
+		};
+		dpcon@90 {
+			num_priorities=<2>;
+		};
+		dpcon@91 {
+			num_priorities=<2>;
+		};
+		dpcon@92 {
+			num_priorities=<2>;
+		};
+		dpcon@93 {
+			num_priorities=<2>;
+		};
+		dpcon@94 {
+			num_priorities=<2>;
+		};
+		dpcon@95 {
+			num_priorities=<2>;
+		};
+		dpcon@96 {
+			num_priorities=<2>;
+		};
+		dpcon@97 {
+			num_priorities=<2>;
+		};
+		dpcon@98 {
+			num_priorities=<2>;
+		};
+		dpcon@99 {
+			num_priorities=<2>;
+		};
+		dpcon@100 {
+			num_priorities=<2>;
+		};
+		dpcon@101 {
+			num_priorities=<2>;
+		};
+		dpcon@102 {
+			num_priorities=<2>;
+		};
+		dpcon@103 {
+			num_priorities=<2>;
+		};
+
+		/* ------------ DPNI --------------*/
+		dpni@0 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@1 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@2 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@3 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@4 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@5 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@6 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@7 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@8 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@9 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@10 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@11 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+		dpni@12 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER", "DPNI_OPT_DIST_HASH", "DPNI_OPT_DIST_FS";
+			max_tcs = <1>;
+			max_dist_per_tc = <8>;
+			max_dist_key_size = <24>;
+		};
+
+		/* ------------ DPMAC --------------*/
+		dpmac@1 {
+		};
+		dpmac@2 {
+		};
+		dpmac@3 {
+		};
+		dpmac@4 {
+		};
+		dpmac@5 {
+		};
+
+		dpmac@9 {
+		};
+		dpmac@10 {
+		};
+		dpmac@11 {
+		};
+		dpmac@12 {
+		};
+		dpmac@13 {
+		};
+		dpmac@14 {
+		};
+		dpmac@15 {
+		};
+		dpmac@16 {
+		};
+
+		/* ------------ DPMCP --------------*/
+		dpmcp@1 {
+		};
+		dpmcp@2 {
+		};
+		dpmcp@3 {
+		};
+		dpmcp@4 {
+		};
+		dpmcp@5 {
+		};
+		dpmcp@6 {
+		};
+		dpmcp@7 {
+		};
+		dpmcp@8 {
+		};
+		dpmcp@9 {
+		};
+		dpmcp@10 {
+		};
+		dpmcp@11 {
+		};
+		dpmcp@12 {
+		};
+		dpmcp@13 {
+		};
+		dpmcp@14 {
+		};
+		dpmcp@15 {
+		};
+		dpmcp@16 {
+		};
+		dpmcp@17 {
+		};
+		dpmcp@18 {
+		};
+		dpmcp@19 {
+		};
+		dpmcp@20 {
+		};
+		dpmcp@21 {
+		};
+		dpmcp@22 {
+		};
+		dpmcp@23 {
+		};
+		dpmcp@24 {
+		};
+		dpmcp@25 {
+		};
+		dpmcp@26 {
+		};
+		dpmcp@27 {
+		};
+		dpmcp@28 {
+		};
+		dpmcp@29 {
+		};
+		dpmcp@30 {
+		};
+		dpmcp@31 {
+		};
+		dpmcp@32 {
+		};
+		dpmcp@33 {
+		};
+		dpmcp@34 {
+		};
+		dpmcp@35 {
+		};
+		dpmcp@36 {
+		};
+	};
+
+	/*****************************************************************
+         * Connections
+         *****************************************************************/
+	connections {
+		/* XFIs */
+		connection@1{
+			endpoint1 = "dpni@0";
+			endpoint2 = "dpmac@1";
+		};
+		connection@2{
+			endpoint1 = "dpni@1";
+			endpoint2 = "dpmac@2";
+		};
+		connection@3{
+			endpoint1 = "dpni@2";
+			endpoint2 = "dpmac@3";
+		};
+		connection@4{
+			endpoint1 = "dpni@3";
+			endpoint2 = "dpmac@4";
+		};
+		connection@5{
+			endpoint1 = "dpni@4";
+			endpoint2 = "dpmac@5";
+		};
+		/* SGMIIs */
+		connection@6{
+			endpoint1 = "dpni@5";
+			endpoint2 = "dpmac@9";
+		};
+		connection@7{
+			endpoint1 = "dpni@6";
+			endpoint2 = "dpmac@10";
+		};
+		connection@8{
+			endpoint1 = "dpni@7";
+			endpoint2 = "dpmac@11";
+		};
+		connection@9{
+			endpoint1 = "dpni@8";
+			endpoint2 = "dpmac@12";
+		};
+		connection@10{
+			endpoint1 = "dpni@9";
+			endpoint2 = "dpmac@13";
+		};
+		connection@11{
+			endpoint1 = "dpni@10";
+			endpoint2 = "dpmac@14";
+		};
+		connection@12{
+			endpoint1 = "dpni@11";
+			endpoint2 = "dpmac@15";
+		};
+		connection@13{
+			endpoint1 = "dpni@12";
+			endpoint2 = "dpmac@16";
+		};
+	};
+};

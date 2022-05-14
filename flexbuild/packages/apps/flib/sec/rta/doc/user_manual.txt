@@ -1,0 +1,124 @@
+Copyright 2014 Freescale Semiconductor, Inc.
+
+User Manual                         {#userman}
+===========
+
+Introduction
+------------
+RTA (Runtime Assembler Library) is a standalone library for writting SEC
+descriptors.
+
+RTA gives users the ability to write descriptors in a human readable form
+by using C code instead of low level machine code.
+It also gives the advantage that it verifies the correctness of the descriptors.
+RTA has, over the other code translators, the advantage that it gives shorter
+and more readable code.
+
+As a standalone library, RTA will not interfere with other components of the
+user application.
+
+
+Installation
+------------
+The library can be installed by running 'make' inside the root of the package:
+
+    $ make install
+
+The default install path "/usr/include" can be changed by editing the Makefile.
+It is not necessary to install the library on the target machine unless you
+intend to build your application there as well.
+
+
+Using RTA
+---------
+RTA can be used in an application just by including the following header file:
+
+	#include flib/rta.h
+
+The files in sec/rta/include/flib/desc directory contain several real-world
+descriptors written with RTA. You can use them as-is or adapt them to your
+needs.
+
+RTA routines take as first parameter a pointer to a "struct program" variable.
+It contains housekeeping information that is used during descriptor creation.
+
+RTA creates the descriptors and saves them in buffers. It is the user's job
+to allocate memory for these buffers before passing them to RTA program
+initialization call.
+
+An RTA program must start with a call to PROGRAM_CNTXT_INIT and end with
+PROGRAM_FINALIZE.
+PROGRAM_CNTXT_INIT will initialize the members of 'program' structure with user
+information (pointer to user's buffer, and the SEC subversion).
+The PROGRAM_FINALIZE call checks the descriptor's validity.
+
+The program length is limited to the size of buffer descriptor which can be
+maximum 64 words (256 bytes). However, a JUMP command can cause loading and
+execution of another Job Descriptor; this allows for much larger programs
+to be created.
+
+
+RTA components
+--------------
+The content of the package is split mainly in two components:
+- descriptor builder API (rta.h)
+- ready to use RTA descriptors (sec/rta/include/flib/desc/*.h)
+
+These are the main building blocks of descriptors:
+- buffer management: init & finalize
+- SEC commands: MOVE, LOAD, FIFO_LOAD etc.
+- descriptor labels (e.g. used as JUMP destinations)
+- utility commands: (e.g. PATCH_* commands that update labels and references)
+
+In some cases, descriptor fields can't all be set when the commands are
+inserted. These fields must be updated in a similar fashion to what the
+linking process does with a binary file. RTA uses PATCH_* commands to get
+relevant information and PROGRAM_FINALIZE to complete the "code relocation".
+
+If there is a need for descriptors larger than 64 words, their function can be
+split into several smaller ones. In such case the smaller descriptors are
+correlated and updated using PATCH_* commands. These calls must appear after all
+the descriptors are finalized and not before as in a single descriptor case (the
+reason being that only then references to all descriptors are available).
+
+
+Example applications
+--------------------
+The RTA package comes with a set of examples inside "tests" directory. These
+examples can be compiled by issuing the 'make' command:
+
+    $ tree tests/
+    tests/
+        +--- Makefile
+        +--- blkcipher_seq.c
+        +--- blob_example.c
+        +--- capwap.c
+        +--- deco_dma_1.c
+        ...
+
+The provided Makefile contains the necessary include paths and compiler flags
+to build all examples without installing the library on your machine:
+
+    $ cd tests
+    $ make all
+or
+
+    $ make <test_name>
+
+To build the tests for the target machine, you must set the CROSS_COMPILE
+variable to your toolchain compiler before building:
+
+    $ export CROSS_COMPILE=powerpc-fsl-linux-
+    $ make all
+
+
+Supported hardware platforms
+----------------------------
+The current version of RTA supports SEC versions 4.X.
+
+
+Known limitations
+-----------------
+The code is checked against the complete table of SEC features.
+There is no verification of code against SEC features that are not available
+on a certain SEC subversion.

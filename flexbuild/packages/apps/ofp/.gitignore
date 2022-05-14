@@ -1,0 +1,64 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.lo
+
+# Temporary files
+*~
+*.tmp 
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# ignore scmversion file
+.scmversion
+
+# ignore byproducts of autotools (bootstrap,configure)
+*.log
+*.patch
+*.in
+*.m4
+*.guess
+*.pc
+*.status
+*.sub
+autom4te.cache/
+compile
+configure
+depcomp
+install-sh
+ltmain.sh
+missing
+test-driver
+libtool
+lib/
+.dirstamp
+.libs
+
+include/config.h
+include/stamp-h1
+
+Makefile
+
+*.trs
+*.deps
+*.xml
+*.gcno
+*.gcda

@@ -1,0 +1,320 @@
+/*
+ * Copyright 2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the above-listed copyright holders nor the
+ *     names of any contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * "Bootstrap DPL" for lx2160a SIM.
+ * This DPL defines one network interface mapped on the dpmac.3 port and two
+ * other network interfaces connected in loopback mode.
+ */
+
+/dts-v1/;
+/ {
+	dpl-version = <0xa>;
+
+	containers {
+
+		dprc@1 {
+			parent = "none";
+			options = "DPRC_CFG_OPT_SPAWN_ALLOWED", "DPRC_CFG_OPT_ALLOC_ALLOWED", "DPRC_CFG_OPT_IRQ_CFG_ALLOWED";
+
+			objects {
+
+				obj_set@dpni {
+					type = "dpni";
+					ids = <0 1 2>;
+				};
+
+				obj_set@dpmac {
+					type = "dpmac";
+					ids = <3>;
+				};
+
+				obj_set@dpbp {
+					type = "dpbp";
+					ids = <0 1 2>;
+				};
+
+				obj_set@dpio {
+					type = "dpio";
+					ids = <0 1 2 3 4 5 6 7>;
+				};
+
+				obj_set@dpmcp {
+					type = "dpmcp";
+					ids = <1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19>;
+				};
+
+				obj_set@dpcon {
+					type = "dpcon";
+					ids = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23>;
+				};
+			};
+		};
+	};
+
+	objects {
+
+		dpni@0 {
+			options = "DPNI_OPT_HAS_KEY_MASKING";
+			num_queues = <8>;
+			num_tcs = <1>;
+			fs_entries = <16>;
+		}; 
+
+		dpni@1 {
+			options = "DPNI_OPT_HAS_KEY_MASKING";
+			num_queues = <8>;
+			num_tcs = <1>;
+			fs_entries = <16>;
+		}; 
+
+		dpni@2 {
+			options = "DPNI_OPT_HAS_KEY_MASKING";
+			num_queues = <8>;
+			num_tcs = <1>;
+			fs_entries = <16>;
+		}; 
+
+		dpmac@3 {
+		};
+
+		dpbp@0 {
+		};
+
+		dpbp@1 {
+		};
+
+		dpbp@2 {
+		};
+
+		dpio@0 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@1 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@2 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@3 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@4 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@5 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@6 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpio@7 {
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <0x8>;
+		};
+
+		dpmcp@1 {
+		};
+
+		dpmcp@2 {
+		};
+
+		dpmcp@3 {
+		};
+
+		dpmcp@4 {
+		};
+
+		dpmcp@5 {
+		};
+
+		dpmcp@6 {
+		};
+
+		dpmcp@7 {
+		};
+
+		dpmcp@8 {
+		};
+
+		dpmcp@9 {
+		};
+
+		dpmcp@10 {
+		};
+
+		dpmcp@11 {
+		};
+
+		dpmcp@12 {
+		};
+
+		dpmcp@13 {
+		};
+
+		dpmcp@14 {
+		};
+
+		dpmcp@15 {
+		};
+
+		dpmcp@16 {
+		};
+
+		dpmcp@17 {
+		};
+
+		dpmcp@18 {
+		};
+
+		dpmcp@19 {
+		};
+
+		dpcon@0 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@1 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@2 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@3 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@4 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@5 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@6 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@7 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@8 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@9 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@10 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@11 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@12 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@13 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@14 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@15 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@16 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@17 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@18 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@19 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@20 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@21 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@22 {
+			num_priorities = <0x2>;
+		};
+
+		dpcon@23 {
+			num_priorities = <0x2>;
+		};
+	};
+
+	connections {
+
+		connection@1 {
+			endpoint1 = "dpni@0";
+			endpoint2 = "dpmac@3";
+		};
+
+		connection@2 {
+			endpoint1 = "dpni@1";
+			endpoint2 = "dpni@2";
+		};
+	};
+};

@@ -1,0 +1,11 @@
+*.o
+*.d
+*.map
+*.patch
+*~
+\#*\#
+.\#*
+*.swp
+*.orig
+cscope*
+.yocto

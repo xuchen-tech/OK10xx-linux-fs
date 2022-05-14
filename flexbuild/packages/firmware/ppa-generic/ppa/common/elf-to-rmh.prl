@@ -1,0 +1,637 @@
+#!/pkg/TWW-perl-/5.8.8/x86_64-linux2.6-glibc2.5/bin/perl
+# 
+#-----------------------------------------------------------------------------
+# 
+# Copyright 2017 NXP Semiconductors
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+# 
+# 3. Neither the name of the copyright holder nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# 
+# Author Philippe MOYER 28 JAN 2003 Initial code
+# Author Rohit Mishra Modified for CS* dumping
+#
+#-----------------------------------------------------------------------------
+# Convert an elf file to \$readmemh format.
+    
+use strict;
+use Getopt::Long;
+use POSIX;
+
+my $debug = undef;
+
+my $elffilename = undef;
+
+my $help = undef;
+
+my $reverse = 1;
+
+GetOptions( "help" => \$help , "file=s" => \$elffilename, "-debug"=>\$debug );
+    
+my $program = `basename $0`;    #script name
+chop $program;
+
+my @section_sorted = ();
+my $number_of_section=0;
+
+my $date = `date`;
+chop $date;
+my $path = $ENV{FILE_NAMES_DIR};
+
+my $ROM_HIGH        = hex("0000FFFF");
+
+my $RAM_LOW        = hex("18000000");
+my $RAM_HIGH       = hex("1801FFFF");
+
+my $DDR0_LOW        = hex("80000000");
+my $DDR0_HIGH       = hex("FFFFFFFF");
+
+my $DDR1_LOW        = hex("8080000000");
+my $DDR1_HIGH       = hex("FFFFFFFFFF");
+
+my $IFC_LOW        = hex("30000000");
+my $IFC_HIGH       = hex("3FFFFFFF");
+
+
+my $rom_tag = 0;
+my $ram_tag = 0;
+my $file_num = 0 ;
+my @ram_mem = ();
+
+my $readelf = "$ENV{ARMV8_TOOLS_DIR}/$ENV{ARMV8_TOOLS_PREFIX}readelf";        #programm to read the elf file
+print "elf-to-rmh: [ INFO ] using ELF parser $readelf\n";
+my $offsethex=hex("00000000");
+my $fill = "x";
+my $line1;
+my $flash_width=2;
+
+#######################
+# Usage
+#######################
+my $usage_text = "
+Usage: $program [options] -file elffile
+elffile      ELF file.
+Possible options are:
+-b           Generate readmemb output instead of readmemh
+-o offset    Offset of memory (i.e. start address), in hex (default: \$offsethex=0).
+-f fill      Hex value to fill undefined memory half-bytes (default: '\$fill').
+-e type      Swap endianess within each word, type is either 'byte' or 'hword'. This option should normally never be used
+-c type      Change output format to 16bit (type=word) or 8bit (type=byte).
+-s type      Select only part of the word for the output file.Type is on of: word (default), hwordL, hwordH, byte0,byte1, byte2 or byte3.
+-d        Data-only output, no addresses (e.g 12345678). This creates a continuous readmemh file (no holes) starting from the -o address.
+-v        Verbose output format with readmemh and original address, e.g \@00100000 12345678 //1040000
+-q        Suppress warnings and informations
+-u            Prints a usage message
+-h            Prints a help message
+";
+
+if ( $help || ! $elffilename ) {
+  print STDERR "$usage_text";
+  exit(1);
+}
+
+#######################
+
+psystem("chmod 664 $elffilename");
+
+
+
+# Utilities
+# ---------
+
+sub checkelf32 {
+  my $file = shift;
+  my $elf = 0;
+  print ("\nelf-to-rmh: checkelf32: File name passed $file\n");
+  open (ELFFILE, "$readelf -h $file |") || &error ("error reading '$file'.");
+  print "elf-to-rmh: checkelf32: [ INFO ] Read elf header and check if it's a 32 bits\n";
+  while ( <ELFFILE>) {
+    if ( /ELF32/ ) {
+      print "elf-to-rmh: checkelf32: [ ELF32 ] bits version continue...\n";
+      $elf=32;
+      last;
+    }
+    if ( /ELF64/ ) {
+      print "elf-to-rmh: checkelf64: [ ELF64 ] bits version continue...\n";
+      $elf=64;
+      last;
+    }
+}
+  if ($elf eq 0) {
+    print "elf-to-rmh: checkelf32: [ WARNING ] $file is NOT an ELF32 bits\n";
+    print "elf-to-rmh: checkelf32: [ WARNING ] ELF file not supported. Exit...\n";
+    exit;
+  }
+  close(ELFFILE);
+}
+
+sub tranself {
+  my $file = shift;
+  my $dest = "$file.txt";
+  print "elf-to-rmh: tranself: [ INFO ] Translate elf to: $dest\n";
+  open (ELFFILE, "$readelf -a $file |") || &error ("error reading '$file'.");
+  open (DEST   , ">$dest") || &error ("error writing '$dest'.");
+  while ( <ELFFILE>) {
+    print DEST;
+	}
+  close(DEST);
+  close(ELFFILE);
+}
+
+sub readSections {
+  my $file = shift;
+  my $filename = `basename $file`;
+  chop $filename;
+  my $line = undef;
+  my @line = ();
+  print "elf-to-rmh: readSections: [ INFO ] Read file: $file \n";
+  print "elf-to-rmh: readSections: [ INFO ] write sectionsA of $filename\n";
+  print "elf-to-rmh: readSections:          Create $path/sectionsA_${filename}_$ENV{USER}\n";
+  open( READSECTION , "$readelf -SW $file |");
+  open( SECTIONA , ">$path/sectionsA_${filename}_$ENV{USER}" );
+  while ( $line = <READSECTION> ) {
+    print "elf-to-rmh: readSections: Line: $line";
+    chomp($line);
+    if ( $line =~ m| \[| ) {
+      $line =~ s|[\[\]]||g;
+      $line =~ s|^\s+||g;
+      @line = split(/\s+/,$line );
+      if ( ( $line[7] =~ m|A| ) && ( $line[5] !~ m|000000| ) ) {
+        print SECTIONA " ",$line[0]," ",$line[3],"\n";
+      }
+    }
+  }
+  close(SECTIONA);
+  close(READSECTION);
+
+}
+
+
+sub error {
+  my @messages = @_;
+  print STDERR "elf-to-rmh: error: [ ERROR ] ", join ("\n    ", @messages);
+  die "\n";
+}
+
+#read sectionsA_${filename}_$USER and sort by address
+#---------------------------------------------
+sub read_elf {
+  my $file = shift;
+  my @section = ();
+  my %sectionnumber = ();
+  my @sorted = ();
+  my $j = undef;
+  print "elf-to-rmh: read_elf: [ INFO ] read sectionsA of $file\n";
+  open (ELFDUMP, "$file") || &error ("error reading '$file'.");
+  my @number=();
+  my @addr=();
+  while (<ELFDUMP>) {
+    $number_of_section++;
+    @section=$_;
+    
+    #split tab/blank, first field=fieldnumber second=hex address
+    @section= split;
+    
+    # sectionnumber[addr dec]=section number
+    $sectionnumber{hex($section[1])}=$section[0];
+    
+    #keep the address in dec to sort them.
+    @addr=(@addr, hex($section[1]));
+    
+  }#end while
+   
+  #sort the addr
+  @sorted = sort {$a<=>$b}  @addr;
+  $section_sorted[0]=$number_of_section;
+  for ( $j=1 ;$j <= $number_of_section; $j++) {
+    $section_sorted[$j]=$sectionnumber{$sorted[$j-1]};
+  }
+  close (ELFDUMP);
+}
+
+#dump the elf section in a file under section_$section_$filename
+sub dumpelfsection {
+  my ($file,$section) = @_;
+  my $filename = `basename $file`;
+  chop $filename;
+  print "elf-to-rmh: dumpelfsection: [ INFO ] read section $section of $filename\n";
+  print "elf-to-rmh: dumpelfsection:          Create $path/section_${section}_${filename}_$ENV{USER}\n";
+  psystem("$readelf -x $section $file > $path/section_${section}_${filename}_$ENV{USER}"); # || die "[ ERROR ] executing readelf -x $section $file";
+}
+
+sub dumpreadmemh(){
+  my $filename = shift;
+  my $section = shift;
+  my $file = `basename $filename`;
+  chomp($file);
+  my $elffile = "$path/section_${section}_${file}_$ENV{USER}";
+  open (READELFSECTION, "$elffile") || &error( "Could not open file '$elffile' for reading\n");
+  print "elf-to-rmh: dumpreadmemh: open: $elffile\n";
+  my $junk = <READELFSECTION>;
+  my $junk = <READELFSECTION>;
+  my $line = <READELFSECTION>;
+  $line =~ s/^\s+//g;
+  my @fields = split(/\s+/, $line);
+    
+  $fields[0] =~ s|0x||g;
+  my $hex_first_addr = hex($fields[0]);
+
+  close( READELFSECTION );
+
+  printf ("\n\nhex_first_addr = %x \n\n",$hex_first_addr);
+  if ( $hex_first_addr <= $ROM_HIGH ) {
+    &dumprom( $elffile,$filename.".rom.rmh" );
+
+  }
+  if ( $hex_first_addr <= $RAM_HIGH && $hex_first_addr >= $RAM_LOW ) {
+    &dumpram( $elffile);
+    ##&dumpifc( $elffile,$filename.".nor.rmh");
+  }
+  if ( $hex_first_addr <= $DDR0_HIGH && $hex_first_addr >= $DDR0_LOW ) {
+    &dumpddr( $elffile,$filename.".ddr.rmh" );
+  }
+  if ( $hex_first_addr <= $DDR1_HIGH && $hex_first_addr >= $DDR1_LOW ) {
+    &dumpddr( $elffile,$filename.".ddr.rmh" );
+  }
+  if ( $hex_first_addr <= $IFC_HIGH && $hex_first_addr >= $IFC_LOW ) {
+    &dumpifc( $elffile,$filename.".nor.rmh");
+  }
+
+}
+
+# This function was added since the format of the readelf data had changed and seems to be written as big endian
+# So the function converts the word: abcdefgi to: giefcdab
+sub convert_big_to_little { 
+    my ($field) = @_;
+    $field = substr ($field,6,2).+substr ($field,4,2).+substr ($field,2,2).+substr ($field,0,2);
+    return $field;
+}
+
+sub dumprom(){
+  my $elffile = shift;
+  my $rmhprefix = shift;
+  my $line;
+  my $address;
+  my $length;
+  my $i;
+  my $j;
+  my @fields = ();
+
+  my @RMH;
+
+  my $rmhfile0 = $rmhprefix . "0.rmh";
+  my $rmhfile1 = $rmhprefix . "1.rmh";
+  my $rmhfile2 = $rmhprefix . "2.rmh";
+  my $rmhfile3 = $rmhprefix . "3.rmh";
+  my $rmhfile4 = $rmhprefix . "4.rmh";
+  my $rmhfile5 = $rmhprefix . "5.rmh";
+  my $rmhfile6 = $rmhprefix . "6.rmh";
+  my $rmhfile7 = $rmhprefix . "7.rmh";
+
+  open( ELF, "$elffile" ) || &error( "Could not open file '$elffile' for reading\n");
+  if ( $rom_tag == 0 ) {
+    open( $RMH[0], ">$rmhfile0" ) || &error( "Could not open file '$rmhfile0' for writing\n");
+    open( $RMH[1], ">$rmhfile1" ) || &error( "Could not open file '$rmhfile1' for writing\n");
+    open( $RMH[2], ">$rmhfile2" ) || &error( "Could not open file '$rmhfile2' for writing\n");
+    open( $RMH[3], ">$rmhfile3" ) || &error( "Could not open file '$rmhfile3' for writing\n");
+    open( $RMH[4], ">$rmhfile4" ) || &error( "Could not open file '$rmhfile4' for writing\n");
+    open( $RMH[5], ">$rmhfile5" ) || &error( "Could not open file '$rmhfile5' for writing\n");
+    open( $RMH[6], ">$rmhfile6" ) || &error( "Could not open file '$rmhfile6' for writing\n");
+    open( $RMH[7], ">$rmhfile7" ) || &error( "Could not open file '$rmhfile7' for writing\n");
+    $rom_tag = 1;
+  } else {
+    open( RMH0, ">>$rmhfile0" ) || &error( "Could not open file '$rmhfile0' for writing\n");
+  }
+  print "elf-to-vmem: dumprom: [ INFO ] Opened $rmhfile0 for writing\n";
+  print `fp $rmhfile0`;
+  while ( $line = <ELF> ) {
+    #print "ROM0: $line";
+    if ( $line =~ m|^\s*$|g || $line =~ m|^Hex|g|| $line =~ m|has no data|g ) {
+      next;
+    }
+    $line =~ s|^\s+||g;
+    $line = substr($line,0,46);
+    print "elf-to-vmem: dumprom: $line\n";
+    @fields = split( /\s+/, $line );
+    $address = shift( @fields );
+    $length = @fields;
+    print "elf-to-vmem: dumprom: [ INFO ] length1 is: $length \n"; #Benny
+    if ( $length > 4 ) {
+      @fields = @fields[0...3];
+    } elsif ( $length <= 4 ) {
+      @fields = @fields[0...($length-1)];
+    }
+    $length = @fields;
+#for ( $i = 0; $i <= ($length - 1); $i+=8) {
+    for ( $i = 0; $i <= ($length - 1); $i+=2) {
+# for ($j=0;$j<=7; $j++) {
+      for ($j=0;$j<=1; $j++) {
+        $fields[$i+$j] = &convert_big_to_little ($fields[$i+$j]);
+        my $RMH_PRINT = $RMH[$j];
+        print $RMH_PRINT $fields[$i+$j],"\n";
+      }
+    }
+
+    @fields = ();
+  }
+
+  # Padding with Zeroes to avoid X fetching
+#for ($i=0;$i<=7; $i++) {  
+for ($i=0;$i<=1; $i++) {  
+  for ($j = 0; $j <= 15; $j++) {
+    my $RMH_PRINT = $RMH[$i];
+    print $RMH_PRINT "00000000\n";
+  }
+}
+  #print RMH_64 $last_line,$last_line,"\n";
+  close( ELF );
+  close( RMH );
+  close( RMH_64 );
+}
+
+
+sub dumpifc(){
+  my $elffile = shift;
+  my $rmhfile = shift;
+  my $line1;
+  my $ram_undef_word = "ffffffff";  #############may chanto zeros or zzzzzzzz
+  my $address1;
+  my $address2;
+  my $address_dec1;
+  my $address_dec2;
+  my $length;
+  my @fields1 = ();
+  my @fields2 = ();
+  my $field_length;
+  my @hex_digits = ();
+  my @dec_data = ();
+  my $j1;
+  my $offset2;
+  my $offset;
+  my $file_selector;
+  my $new_address ;
+  my $hex_data ;
+  my $part_of_word ;
+  my $tmp_mem_val ;
+  my @nor_data = ();
+  my $field_idx=0;
+  my $char_idx=0;
+  open( ELF3, "$elffile" ) || &error( "Could not open file '$elffile' for reading\n");
+  open( RMH3, ">>$rmhfile" ) || &error( "Could not open file '$rmhfile' for writing\n");
+  while ( $line1 = <ELF3> ) {
+    if ( $line1 =~ m|^\s*$|g || $line1 =~ m|^Hex|g|| $line1 =~ m|has no data|g ) {
+      next;  ######  shouldnt i warn about this?????
+    }
+    $line1 =~ s|^\s+||g;
+    $line1 = substr($line1,0,46);
+    ##print "elf-to-rmh: dumpifc: line = $line1\n"; ##debug
+    
+    ## taking adress
+    @fields1 = split( /\s+/, $line1 );
+    $address1 = shift( @fields1 );
+    $address_dec1 = hex($address1);
+    printf RMH3 ("\@%x \n",($address_dec1 - $IFC_LOW)/2);
+
+    ##print "elf-to-rmh: dumpifc: debug: adress is $address1 $address_dec1 \n"; ##debug
+    
+    ##taking data
+    ##$hex_data = substr($line1,11,46); ##debug
+    ##print "elf-to-rmh: dumpifc: debug: fields = @fields1  \n"; ##debug
+    $field_idx=0;
+    $char_idx=0;
+
+    while ($field_idx < 4) {  ## Assumes that ELF format always contains 4 data fields in a row, each data field 4 bytes wide
+      $hex_data = shift( @fields1 );
+      $hex_data = &convert_big_to_little ($hex_data);
+      ##print "After big_to_little: $hex_data \n";
+      @fields2 = split(//,$hex_data);
+      $field_length = @fields2; ## Always 8
+      ##print "elf-to-rmh: dumpifc: fields length=$field_length,..... hex_data=$hex_data,...... fields2=@fields2\n";  ##debug
+      $char_idx = 0; 
+      my $tmp_idx = 0;
+      if($flash_width == 2) {
+        print RMH3 "$fields2[4]$fields2[5]$fields2[6]$fields2[7]\n";
+        print RMH3 "$fields2[0]$fields2[1]$fields2[2]$fields2[3]\n";
+      }
+##      while ($tmp_idx < 8) {
+##        print RMH3 "$fields2[$tmp_idx]";
+##        #print "idx = ", $char_idx+1, " char = ",shift(@fields2),"\n";
+##        $char_idx++;
+##        if($char_idx == 2*$flash_width) { ##flash_width is in bytes
+##          $char_idx = 0;
+##          print RMH3 "\n";
+##        }
+##        #print "elf-to-rmh: dumpifc: Field $field_idx: fields2 = @fields2 \n";
+##        $tmp_idx++;
+##      }
+      $field_idx++;
+    }
+
+  }
+  
+
+  close( ELF3 );
+  close( RMH3);
+}
+
+sub dumpram(){
+  my $elffile1 = shift;
+  my $line1;
+  my $ram_undef_word = "ffffffff";  #############may chanto zeros or zzzzzzzz
+  my $address1;
+  my $address2;
+  my $address_dec1;
+  my $address_dec2;
+  my $length1;
+  my @fields1 = ();
+  my @hex_digits = ();
+  my @dec_data = ();
+  my $j1;
+  my $offset2;
+  my $offset;
+  my $file_selector;
+  my $new_address ;
+  my $hex_data ;
+  my $part_of_word ;
+  my $tmp_mem_val ;
+  open( ELF1, "$elffile1" ) || &error( "Could not open file '$elffile1' for reading\n");
+  while ( $line1 = <ELF1> ) {
+    if ( $line1 =~ m|^\s*$|g || $line1 =~ m|^Hex|g|| $line1 =~ m|has no data|g ) {
+      next;  ######  shouldnt i warn about this?????
+    }
+    $line1 =~ s|^\s+||g;
+    $line1 = substr($line1,0,46);
+    ##print "elf-to-rmh: dumpram: line = $line1\n";
+    
+    ## taking adress
+    @fields1 = split( /\s+/, $line1 );
+    $address1 = shift( @fields1 );
+    @fields1 = ();
+    $address_dec1 = hex($address1);
+    ##print "elf-to-rmh: dumpram: debug: decimal adress is $address_dec1 \n"; ##debug
+    
+    ##taking data
+    $hex_data = substr($line1,11,46); ##debug
+    ## print "elf-to-rmh: dumpram: debug: data string is $hex_data  \n"; ##debug
+    
+
+    #find location on real ram
+    $address_dec2 = $address_dec1 - $RAM_LOW ; #relative adress - ram starts at zero
+    my $row_in_mems = ($address_dec2/8); # 8 bytes in row
+    my $row_in_mem = ($row_in_mems % 4096); # row in a specific mem - 4096 rows per line
+    my $row_bank_sel = $row_in_mems / 4096 ; # bank number selector (0-4), 4096 rows per bank
+
+    $j1 = 0;
+    while ( $j1 < 4) {
+        $tmp_mem_val = substr($line1,38-9*$j1,8);  ##debug  ##debug  ##debug
+        my $value = hex(&convert_big_to_little ($tmp_mem_val));
+#       my $value = hex($tmp_mem_val);
+       $ram_mem[$row_in_mem+((3-$j1)/2)][$row_bank_sel][($j1%2)] = $value;
+       print "elf-to-rmh: dumpram: debug: data in ram_mem[$row_in_mem+($j1/2)][$row_bank_sel][($j1%2)] == $tmp_mem_val  \n" if ($debug);
+       $j1=$j1+1;
+     }
+  }
+  
+
+  close( ELF1 );
+}
+sub makeramfiles(){
+  my $ram_len ;
+  my $rmhfile = shift;
+  my $j;
+ 
+  for (my $bank_row=0;$bank_row<4;$bank_row++) {
+    for (my $bank_col=0;$bank_col<2;$bank_col++) {
+      my $fname = $rmhfile.".".$bank_row.$bank_col;
+      open( RMH, ">$fname" ) || &error( "Could not open file '$fname' for writing\n");
+      print "elf-to-rmh: dumpram: [ INFO ] Opened $fname for writing - new file\n";
+      for (my $row=0;$row<4096;$row++) {
+	if ($bank_row<scalar($ram_mem[$row])) {
+	  printf RMH "@%.4x %.20b%.32b\n",$row,0,$ram_mem[$row][$bank_row][$bank_col],"\n";
+	}
+      }
+      
+      # Padding with Zeroes to avoid X fetching
+      for ($j = 0; $j <= 15; $j++) {
+      print RMH "0000000000000000000000000000000000000000000000000000\n";
+      }
+
+      close( RMH );
+    }
+  }
+}
+
+sub dumpddr(){
+  my $elffile = shift;
+  my $rmhfile = shift;
+  my $line;
+  my $address;
+  my $length;
+  my $i;
+  my $j;
+  my @fields = ();
+
+  open( ELF2, "$elffile" ) || &error( "Could not open file '$elffile' for reading\n");
+  open( RMH2, ">>$rmhfile" ) || &error( "Could not open file '$rmhfile' for writing\n");
+
+  while ( $line = <ELF2> ) {
+    if ( $line =~ m|^\s*$|g || $line =~ m|^Hex|g|| $line =~ m|has no data|g ) {
+      next;
+    }
+    $line =~ s|^\s+||g;
+    $line = substr($line,0,46);
+    print "elf-to-rmh: dumpddr: $line\n";
+    @fields = split( /\s+/, $line );
+    $address = hex(shift( @fields ));
+    $length = @fields;
+    if ( $length > 4 ) {
+      @fields = @fields[0...3];
+    } elsif ( $length <= 4 ) {
+      @fields = @fields[0...($length-1)];
+    }
+    $length = @fields;
+    for ( $i = 0; $i <= ($length - 1); $i++) {
+      $fields[$i] = &convert_big_to_little ($fields[$i]);
+      if ($address <= 0xFFFFFFFFFF && $address >= 0x8080000000) {
+        $address = $address - 0x8000000000;
+      } elsif ($address <= 0xFFFFFFFF && $address >= 0x80000000) {
+        $address = $address - 0x80000000;
+      }
+      printf RMH2 ("\@%x %s\n", $address, $fields[$i]);
+      $address = $address + 0x4;
+    }
+
+    @fields = ();
+  }
+  
+  close( ELF2 );
+  close( RMH2 );
+}
+
+#main 
+#----
+my $numsection = undef;
+my $filename = `basename $elffilename`;
+chop $filename;
+my $file = `basename $elffilename`;
+chomp ($file);
+psystem("chmod 664 $elffilename");
+&checkelf32($elffilename);
+&tranself($elffilename);
+&readSections($elffilename);
+&read_elf("$path/sectionsA_${filename}_$ENV{USER}");
+for ($numsection = 1; $numsection <= $number_of_section ; $numsection++) {
+  print "elf-to-rmh: main: dumpelfsection: $numsection \n";
+  &dumpelfsection ($elffilename,$section_sorted[$numsection]);
+  print "elf-to-rmh: main: dumpreadmemh: $numsection \n";
+  &dumpreadmemh($elffilename,$section_sorted[$numsection]);
+}
+&makeramfiles($elffilename.".ram.rmh");
+
+
+##############################################################################
+##########################     delete tmp files     ##########################
+##############################################################################
+print "elf-to-rmh: main: rm -f $path/section*_${filename}_$ENV{USER}\n" unless ($debug) ;
+psystem( "rm -f $path/section*_${filename}_$ENV{USER}" ) unless ($debug);
+print "elf-to-rmh: main: rm -f ${file}.ram.rmh.tmp.*\n" unless ($debug);
+psystem( "rm -f ${elffilename}.ram.rmh.tmp.*" ) unless ($debug);
+
+## delete unused .rom, .ram files
+psystem( "rm -f ${elffilename}.ram.rmh.*" ) unless ($debug);
+psystem( "rm -f ${elffilename}.rom.rmh2.rmh" ) unless ($debug);
+psystem( "rm -f ${elffilename}.rom.rmh3.rmh" ) unless ($debug);
+psystem( "rm -f ${elffilename}.rom.rmh4.rmh" ) unless ($debug);
+psystem( "rm -f ${elffilename}.rom.rmh5.rmh" ) unless ($debug);
+psystem( "rm -f ${elffilename}.rom.rmh6.rmh" ) unless ($debug);
+psystem( "rm -f ${elffilename}.rom.rmh7.rmh" ) unless ($debug);
+
+sub psystem ($) {
+  my $command = shift;
+  print "Executing: $command\n"  if ($debug);
+  my $status = system ($command);
+  return  $status;
+}
+

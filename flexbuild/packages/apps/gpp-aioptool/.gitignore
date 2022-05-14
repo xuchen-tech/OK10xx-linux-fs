@@ -1,0 +1,6 @@
+cscope*
+*.swp
+bin*
+tags
+*.o
+*.a

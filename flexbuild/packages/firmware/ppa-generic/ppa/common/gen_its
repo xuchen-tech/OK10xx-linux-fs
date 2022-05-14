@@ -1,0 +1,88 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------
+#
+# Copyright 2017-2018 NXP Semiconductors 
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+#-----------------------------------------------------------------------------
+
+VERSION="LSDK-18.06-Forlinx";
+if [ "$VERSION" = "" ]; then
+VERSION="'none'"
+fi
+
+printf "/dts-v1/;\n" > $1
+printf "\n" >> $1
+printf "/{\n" >> $1
+printf "	description = \"PPA Firmware\";\n" >> $1
+printf "	#address-cells = <1>;\n" >> $1
+printf "	images {\n" >> $1
+printf "		firmware@1 {\n" >> $1
+printf "			description = \"PPA Firmware: Version %s\";\n" $VERSION >> $1
+printf "			data = /incbin/(\"../obj/monitor.bin\");\n" >> $1
+printf "			type = \"firmware\";\n" >> $1
+printf "			arch = \"arm64\";\n" >> $1
+printf "			compression = \"none\";\n" >> $1
+printf "		};\n" >> $1
+if [ "$2" = "spd=on" ]; then
+printf "		trustedOS@1 {\n" >> $1
+printf "			description = \"Trusted OS\";\n" >> $1
+printf "			data = /incbin/(\"../../tee.bin\");\n" >> $1
+printf "			type = \"OS\";\n" >> $1
+printf "			arch = \"arm64\";\n" >> $1
+printf "			compression = \"none\";\n" >> $1
+printf "			load = <0x00200000>;\n" >> $1
+printf "		};\n" >> $1
+fi
+if [ "$3" = "fuse=on" ]; then
+printf "		fuse_scr {\n" >> $1
+printf "			description = \"Fuse Script\";\n" >> $1
+printf "			data = /incbin/(\"../../fuse_scr.bin\");\n" >> $1
+printf "			type = \"firmware\";\n" >> $1
+printf "			arch = \"arm64\";\n" >> $1
+printf "			compression = \"none\";\n" >> $1
+printf "			load = <0x00180000>;\n" >> $1
+printf "		};\n" >> $1
+fi
+printf "	};\n" >> $1
+printf "\n" >> $1
+printf "	configurations {\n" >> $1
+printf "		default = \"config-1\";\n" >> $1
+printf "		config-1 {\n" >> $1
+printf "			description = \"PPA Secure firmware\";\n" >> $1
+printf "			firmware = \"firmware@1\";\n" >> $1
+if [[ "$2" = "spd=on" && "$3" = "fuse=on" ]]; then
+printf "			loadables = \"trustedOS@1\", \"fuse_scr\";\n" >> $1
+elif [ "$2" = "spd=on" ]; then
+printf "			loadables = \"trustedOS@1\";\n" >> $1
+elif [ "$3" = "fuse=on" ]; then
+printf "			loadables = \"fuse_scr\";\n" >> $1
+fi
+printf "		};\n" >> $1
+printf "	};\n" >> $1
+printf "};\n" >> $1

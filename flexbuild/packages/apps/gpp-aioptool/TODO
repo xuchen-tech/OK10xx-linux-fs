@@ -1,0 +1,20 @@
+List of Items Pending:
+
+ # Build Related
+ - Removal of non-necessary flib/mc/*.c files; Only DPAIOP and MC are necessary
+ - Makefile needs to be automated for any depth of directories
+
+ # Code Related
+ 3 Currently aiopt_lib handler for commands are not returning structured data.
+   This would make it difficult to write wrapper applications over it. To be
+   re-structured
+ 6 Some structures, typically aiopt_conf and aiopt_obj, have redundant or
+   repeated members. Synchronization across them required.
+10 Version check against valid/applicable MC
+12 Multiple flag variables are being used in struct global_args - this is space
+   wastage and can be compressed into a single 32bit integer with bit operations
+13 Various members of struct global_args are static arrays - this should be
+   improved. Current rationale: AIOP Tool is a run-to-completion tool and hence
+   existing of such structure in memory is only limited to time required to
+   complete a single command (which is couple of seconds only).
+14 <Add here>

@@ -1,0 +1,280 @@
+/*
+ * Copyright 2015-2016 Freescale Semiconductor, Inc.
+ * Copyright 2017 NXP
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * Neither the name of the above-listed copyright holders nor the
+ *     names of any contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * "Bootstrap DPL" for ls1088a featuring SerDes 0x1D_0x0D.
+ * This together with the available DPMCP objects should be enough to boot Linux
+ * and to allow the dynamic addition of other objects to the Linux container,
+ * using the 'restool' utility.
+ */
+
+/dts-v1/;
+/ {
+	/*****************************************************************
+         * Containers
+         *****************************************************************/
+	containers {
+		dprc@1 {
+			compatible = "fsl,dprc";
+			parent = "none";
+			options = "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED", "DPRC_CFG_OPT_IRQ_CFG_ALLOWED";
+			objects {
+				/* ------------- MACs --------------*/
+				obj@100 {
+					obj_name = "dpmac@1";
+				};				
+				obj@101 {
+					obj_name = "dpmac@2";
+				};
+
+				/* ------------ DPNIs --------------*/
+				obj@200 {
+					obj_name = "dpni@1";
+				};
+
+				/* ------------ DPBPs --------------*/
+				obj@300 {
+					obj_name="dpbp@1";
+				};
+
+				/* ------------ DPIOs --------------*/
+				obj@400 {
+					obj_name = "dpio@1";
+				};
+
+				/* ------------ DPAIOP --------------*/
+				obj@500{
+					obj_name = "dpaiop@0";
+				};
+				
+				/* ------------ DPMCPs --------------*/
+				obj@701 {
+					obj_name="dpmcp@1";
+				};
+				obj@702 {
+					obj_name="dpmcp@2";
+				};
+				obj@703 {
+					obj_name="dpmcp@3";
+				};
+				obj@704 {
+					obj_name="dpmcp@4";
+				};
+				obj@705 {
+					obj_name="dpmcp@5";
+				};
+				obj@706 {
+					obj_name="dpmcp@6";
+				};
+				obj@707 {
+					obj_name="dpmcp@7";
+				};
+				obj@708 {
+					obj_name="dpmcp@8";
+				};
+				obj@709 {
+					obj_name="dpmcp@9";
+				};
+				obj@710 {
+					obj_name="dpmcp@10";
+				};
+				obj@711 {
+					obj_name="dpmcp@11";
+				};
+				obj@712 {
+					obj_name="dpmcp@12";
+				};
+				obj@713 {
+					obj_name="dpmcp@13";
+				};
+
+				/* ------------ DPCON --------------*/
+				obj@800 {
+					obj_name="dpcon@1";
+				};
+
+				/* ------------ DPRTC --------------*/
+				obj@900 {
+					obj_name="dprtc@0";
+				};
+			};
+		};
+		dprc@2 {
+			compatible = "fsl,dprc";
+			parent = "dprc@1";
+			options = "DPRC_CFG_OPT_IRQ_CFG_ALLOWED" , "DPRC_CFG_OPT_TOPOLOGY_CHANGES_ALLOWED" , "DPRC_CFG_OPT_IOMMU_BYPASS" , "DPRC_CFG_OPT_SPAWN_ALLOWED" , "DPRC_CFG_OPT_ALLOC_ALLOWED" , "DPRC_CFG_OPT_AIOP" , "DPRC_CFG_OPT_OBJ_CREATE_ALLOWED";
+			objects {
+				/* ------------ DPNIs --------------*/
+				obj@100{
+					obj_name = "dpni@2";
+				};
+				
+				/* ------------ DPBPs --------------*/
+				obj@200{
+					obj_name = "dpbp@2";
+				};
+				obj@201{
+					obj_name = "dpbp@3";
+				};
+				obj@202{
+					obj_name = "dpbp@4";
+				};
+				obj@203{
+					obj_name = "dpbp@5";
+				};
+				obj@204{
+					obj_name = "dpbp@6";
+				};
+				obj@205{
+					obj_name = "dpbp@7";
+				};
+				obj@206{
+					obj_name = "dpbp@8";
+				};				
+			};
+		};		
+	};
+
+	/*****************************************************************
+         * Objects
+         *****************************************************************/
+	objects {
+		dpaiop@0 {
+			compatible = "fsl,dpaiop";
+			aiop_container_id = <2>;
+		};
+
+		/* ------------ DPNI --------------*/
+		dpni@1 {
+			type = "DPNI_TYPE_NIC";
+			mac_addr = <0x00 0x00 0x00 0x00 0x00 0x00>;
+			max_senders = <8>;
+			options = "DPNI_OPT_MULTICAST_FILTER", "DPNI_OPT_UNICAST_FILTER";
+			max_tcs = <1>;
+			max_dist_per_tc = <0>;
+			max_dist_key_size = <24>;
+		};
+		dpni@2{
+			compatible = "fsl,dpni";
+			mac_addr = < 0x0 0x0 0x2 0x0 0x0 0x2 >; 
+			max_senders = <0>;
+			options = "DPNI_OPT_MULTICAST_FILTER" , "DPNI_OPT_UNICAST_FILTER" , "DPNI_OPT_TX_CONF_DISABLED" , "DPNI_OPT_DIST_HASH";
+			max_tcs = <0>;
+			max_dist_per_tc = < 0 0 0 0 0 0 0 0 >;
+			max_unicast_filters = <0>;
+			max_multicast_filters = <0>;
+			max_vlan_filters = <0>;
+			max_qos_entries = <0>;
+			max_qos_key_size = <0>;
+			max_dist_key_size = <0>;
+		};
+
+		/* ------------ DPBP --------------*/
+		dpbp@1 {
+		};
+		dpbp@2 {
+		};
+		dpbp@3 {
+		};
+		dpbp@4 {
+		};
+		dpbp@5 {
+		};
+		dpbp@6 {
+		};
+		dpbp@7 {
+		};
+		dpbp@8 {
+		};	
+
+		/* ------------ DPIO --------------*/
+		dpio@1 {
+			compatible = "fsl,dpio";
+			channel_mode = "DPIO_LOCAL_CHANNEL";
+			num_priorities = <8>;
+		};
+
+		dpmac@1 {
+			compatible = "fsl,dpmac";
+		};
+		dpmac@2 {
+			compatible = "fsl,dpmac";
+		};
+
+		/* ------------ DPMCP --------------*/
+		dpmcp@1 {
+		};
+		dpmcp@2 {
+		};
+		dpmcp@3 {
+		};
+		dpmcp@4 {
+		};
+		dpmcp@5 {
+		};
+		dpmcp@6 {
+		};
+		dpmcp@7 {
+		};
+		dpmcp@8 {
+		};
+		dpmcp@9 {
+		};
+		dpmcp@10 {
+		};
+		dpmcp@11 {
+		};
+		dpmcp@12 {
+		};
+		dpmcp@13 {
+		};
+
+		/* ------------ DPCON --------------*/
+		dpcon@1 {
+			num_priorities=<8>;
+		};
+
+		/* ------------ DPRTC --------------*/
+		dprtc@0 {
+		};
+	};
+
+	/*****************************************************************
+         * Connections
+         *****************************************************************/
+	connections {
+		connection@1{
+			endpoint1 = "dpni@1";
+			endpoint2 = "dpmac@1";
+		};
+		connection@2{
+			endpoint1 = "dpni@2";
+			endpoint2 = "dpmac@2";
+		};
+	};
+};
